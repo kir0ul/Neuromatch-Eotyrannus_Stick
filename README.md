@@ -1,1 +1,7 @@
 # Neuromatch-Eotyrannus_Stick
+
+This research initiative aims at exploring the potential of deep learning models in accurately classifying individuals with ASD and neurotypical individuals based on fMRI data.
+This project leverages fMRI data obtained from a cohort of individuals diagnosed with ASD and neurotypical individuals. Functional connectivity matrices are extracted from the fMRI data. Multi-Layer Perceptron (MLP) deep learning models are employed to classify individuals into ASD and neurotypical groups, as well as classify by gender based on these functional connectivity patterns.
+
+## ABSTRACT
+Recent advancements in deep learning have shown great promise in various domains, including medical diagnostics. This study addresses the classification of individuals with autism spectrum disorder (ASD) using fMRI data.However, existing diagnostic methods may be limited by biases and the complexity of ASD's heterogeneous presentation. Therefore, this research aims to investigate the potential biases that deep learning models may exhibit in classifying ASD individuals, with a particular focus on how subject sex may influence the classification. Understanding these biases is crucial for developing robust and fair diagnostic tools that can aid in early intervention and support for individuals with ASD. We used fMRI data from the ABIDE dataset that includes around 1000 fMRI subjects acquired during resting-state session from different institutions, and functional connectivity matrices were computed based on predefined brain regions.
