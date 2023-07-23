@@ -1,3 +1,6 @@
+abideI_pcp.pkl
+ABIDE_pcp/cpac/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
