@@ -51,17 +51,19 @@ davos.config.suppress_stdout = True
 from pathlib import Path
 import math
 import os
+import random
 
 # Scientific computation and data analysis
 smuggle numpy as np
 smuggle pandas as pd
 from scipy.io smuggle loadmat
-smuggle random
+smuggle statsmodels
 
 # Neuroimaging libraries
 smuggle nilearn
 smuggle nibabel as nib
 from nilearn smuggle datasets
+from neuroHarmonize smuggle harmonizationLearn
 
 # Plot libraries
 smuggle matplotlib.pyplot as plt
@@ -84,6 +86,9 @@ from sklearn.model_selection smuggle train_test_split
 import torch.nn as nn
 import torch.optim as optim
 
+# Custom functions
+# %run Harmonization.py
+
 # %% id="tj9FBdNjZ375"
 # @markdown Executing `set_seed(seed=seed)` you are setting the seed
 
@@ -92,8 +97,6 @@ import torch.optim as optim
 # Read more here: https://pytorch.org/docs/stable/notes/randomness.html
 
 # Call `set_seed` function in the exercises to ensure reproducibility.
-import random
-import torch
 
 def set_seed(seed=None, seed_torch=True):
   """
@@ -250,7 +253,7 @@ females_stat.describe()
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="DEz4AkQzMk-a" outputId="e2f72bb7-3281-4677-f9d2-47c721288cf9"
 NYU_dx_counts = phen_abide['DX_GROUP'].value_counts()
-NYU_dx_counts # 86 Neurotypical Controls, 74 ASD
+NYU_dx_counts # 468 Neurotypical Controls, 403 ASD
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 469} id="T7-MonEfRPbF" outputId="51cf3c46-55e7-4ae3-c066-b58013c5f769"
 Y = NYU_dx_counts.values
@@ -260,10 +263,11 @@ plt.ylabel('Number of subjects')
 color1 = (128/255, 0, 128/255, 0.5)
 color2 = (128/255, 0, 128/255, 0.8)
 plt.bar(X, Y, color = [color1, color2])
+plt.show()
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="7-pASFZXOuto" outputId="99813fa5-bbcd-4518-c722-9bf70f3cfea4"
 NYU_sex_counts = phen_abide['SEX'].value_counts()
-NYU_sex_counts # Male 124, Female 36
+NYU_sex_counts # Male 727, Female 144
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 469} id="bmLbIjLkTCFq" outputId="358c3474-c2a6-4bc0-c11e-94cff56155a2"
 Y = NYU_sex_counts.values
@@ -273,17 +277,18 @@ plt.ylabel('Number of subjects')
 color1 = (128/255, 0, 128/255, 0.5)
 color2 = (128/255, 0, 128/255, 0.8)
 plt.bar(X, Y, color = [color1, color2])
+plt.show()
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="YANhL2BtPqVy" outputId="b4d9258d-088e-43ca-e553-ca1ec435ae83"
 NYU_ASD_MALE = phen_abide.loc[(phen_abide['DX_GROUP'] == 1) & (phen_abide['SEX'] == 1)]
-NYU_ASD_MALE['DX_GROUP'].count() # 64 MALES WITH ASD, 60 MALES NEUROTYPICAL CONTROLS
+NYU_ASD_MALE['DX_GROUP'].count() # 349 MALES WITH ASD, 378 MALES NEUROTYPICAL CONTROLS
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="jRfSTcpWQrkz" outputId="bdda383b-42b0-4582-ba2a-fa7a19b78edb"
 NYU_ASD_FMALE = phen_abide.loc[(phen_abide['DX_GROUP'] == 1) & (phen_abide['SEX'] == 2)]
-NYU_ASD_FMALE['DX_GROUP'].count() # 10 FEMALES WITH ASD, 26 FEMALES NEUROTYPICAL CONTROLS
+NYU_ASD_FMALE['DX_GROUP'].count() # 54 FEMALES WITH ASD, 90 FEMALES NEUROTYPICAL CONTROLS
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 469} id="xkt884K-TaaF" outputId="14479a7c-5323-4e59-d7d8-7cc4ab47facc"
-Y = [64, 60, 10, 26]
+Y = [NYU_ASD_MALE['DX_GROUP'].count(), NYU_sex_counts.iloc[0] - NYU_ASD_MALE['DX_GROUP'].count(), NYU_ASD_FMALE['DX_GROUP'].count(), NYU_sex_counts.iloc[1]-NYU_ASD_FMALE['DX_GROUP'].count()]
 X = ['MALES ASD', 'MALES NC', 'FEMALES ASD', 'FEMALES NC']
 color1 = (128/255, 0, 128/255, 0.2)
 color2 = (128/255, 0, 128/255, 0.4)
@@ -292,6 +297,7 @@ color4 = (128/255, 0, 128/255, 0.8)
 plt.title('DX AND SEX')
 plt.ylabel('COUNT')
 plt.bar(X, Y, color = [color1, color2, color3, color4])
+plt.show()
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="GIi9ta-QBmCE" outputId="4885b8d3-3c34-44f4-9605-8561354ba63d"
 abide['rois_cc200'][0].shape #[Time series, ROIS] fmri --> pixels, voxels (3D) basic unit
@@ -347,6 +353,7 @@ print(test_subj_0.shape,'\n', test_subj_0.header, '\n', test_subj_0.header.get_x
 # %% colab={"base_uri": "https://localhost:8080/", "height": 449} id="PKT_b00DHFMB" outputId="14305129-2305-4dc7-e8d4-01d55b8e1aa1"
 mid_slice_fmri = test_subj_0.get_fdata()[40, :, :, 0] # Slice 40, first volume
 plt.imshow(mid_slice_fmri.T, cmap='gray', origin='lower') # 4D file
+plt.show()
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="Zx4_WCtwtubB" outputId="1d98efb4-31d0-4ca9-8018-c73a79d5d870"
 cc200 = datasets.fetch_atlas_craddock_2012(data_dir=None, url=None, resume=True, verbose=1, homogeneity=None, grp_mean=True)
@@ -355,6 +362,7 @@ cc200 = datasets.fetch_atlas_craddock_2012(data_dir=None, url=None, resume=True,
 par_clusters = nib.load(cc200.random)
 mid_slice_fmri = par_clusters.get_fdata()[20, :, :, 0] # Slice 20, first volume
 plt.imshow(mid_slice_fmri.T, cmap='black_purple', origin='lower')
+plt.show()
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 314} id="UKZ0kIFPuKgv" outputId="09d1bc11-faa6-4324-b73e-557d2779df30"
 plotting.plot_prob_atlas(par_clusters) #40.000 (200 * 200) square matrix, If two BOLD signals are activated at the same time, or have a similar intensity pattern, it means that they are correlated, therefore they may be involved in the same cognitive or network process.
@@ -362,27 +370,53 @@ plotting.plot_prob_atlas(par_clusters) #40.000 (200 * 200) square matrix, If two
 # %% colab={"base_uri": "https://localhost:8080/"} id="r96pMi4UJoBQ" outputId="bb790845-6e25-430d-933f-bdc945af58b9"
 len(abide['rois_cc200'])
 
-# %% colab={"base_uri": "https://localhost:8080/", "height": 49, "referenced_widgets": ["c7549003fb814723b292caf171e4bde6", "4708507e26284186b8478ce88957d3de", "7fbc68b716e148fc90a9106296d95385", "14b2eb211c424e2d9b851cad24d39a4c", "af88e2f6ea9b4f7ea8e8588392c065d1", "625db0ab78f44e35958af04a088aec82", "66703da8807c40a2a8aa9c69c4f157d9", "fb1000bf3bfe4a0c85a169e6c4bc7db4", "f65aabea797840a5b165ac9b46b24a70", "253a5db89169408a907d62b6d4c65c17", "b6575ab0de79477cbac2ffc3ddd33fac"]} id="ivtAuZ8wwZUY" outputId="b73368a6-4bba-4073-b664-6ad68c285eb2"
-pearson_corr = ConnectivityMeasure(kind='correlation', discard_diagonal=True) # Pearson
-# covariance = ConnectivityMeasure(kind='covariance')
+# %%
+corrpearson_subjects_path = nma_drive.joinpath("corrpearson_subjects.npy")
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")  # Temporarily ignore FutureWarning
-    # Computing Functional Connectivity
-    # corrpearson_subjects = [pearson_corr.fit_transform(abide['rois_cc200'])[i] for i in tqdm(range(len(abide['rois_cc200'])))] # X _ features #
-    corrpearson_subjects = np.zeros((len(abide['rois_cc200']), rois_dim, rois_dim))
-    for idx, val in enumerate(tqdm(abide['rois_cc200'])):
-        corrpearson_subjects[idx, :, :] = pearson_corr.fit_transform(abide['rois_cc200'])[idx]
+# %% colab={"base_uri": "https://localhost:8080/", "height": 49, "referenced_widgets": ["c7549003fb814723b292caf171e4bde6", "4708507e26284186b8478ce88957d3de", "7fbc68b716e148fc90a9106296d95385", "14b2eb211c424e2d9b851cad24d39a4c", "af88e2f6ea9b4f7ea8e8588392c065d1", "625db0ab78f44e35958af04a088aec82", "66703da8807c40a2a8aa9c69c4f157d9", "fb1000bf3bfe4a0c85a169e6c4bc7db4", "f65aabea797840a5b165ac9b46b24a70", "253a5db89169408a907d62b6d4c65c17", "b6575ab0de79477cbac2ffc3ddd33fac"]} id="ivtAuZ8wwZUY" outputId="b73368a6-4bba-4073-b664-6ad68c285eb2"
+if not corrpearson_subjects_path.exists():
+    pearson_corr = ConnectivityMeasure(kind='correlation') #, discard_diagonal=True, vectorize=True) # Pearson
+    # covariance = ConnectivityMeasure(kind='covariance')
     
-# corrmat = pearson_corr.fit_transform(abide['rois_cc200'])[0]
-# corr_pearson_seitzman = [correlation_Pearson.fit_transform([subjects_seitzman[i]])[0] for i in range(len(subjects_seitzman))]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # Temporarily ignore FutureWarning
+        # Computing Functional Connectivity
+        # corrpearson_subjects = [pearson_corr.fit_transform(abide['rois_cc200'])[i] for i in tqdm(range(len(abide['rois_cc200'])))] # X _ features #
+        corrpearson_subjects = np.zeros((rois_dim, rois_dim, len(abide['rois_cc200'])))
+        for idx, val in enumerate(tqdm(abide['rois_cc200'])):
+            corrpearson_subjects[:, :, idx] = pearson_corr.fit_transform(abide['rois_cc200'])[idx]
+        
+    # corrmat = pearson_corr.fit_transform(abide['rois_cc200'])[0]
+    # corr_pearson_seitzman = [correlation_Pearson.fit_transform([subjects_seitzman[i]])[0] for i in range(len(subjects_seitzman))]
+    np.save(corrpearson_subjects_path, corrpearson_subjects, allow_pickle=True, fix_imports=True)
+else:
+    corrpearson_subjects = np.load(corrpearson_subjects_path)
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="pCCzvSn0ycl8" outputId="9f7999d3-15b2-4a79-9e53-d6c5882538e9"
 np.asarray(corrpearson_subjects).shape
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 1000} id="BmgAV8RZznKq" outputId="743dff8e-1887-4222-fd1d-6e007828eb34"
-for i in range(10):
-  plotting.plot_matrix(corrpearson_subjects[i], auto_fit = True, tri = 'full')
+# for idx in range(10):
+#   plotting.plot_matrix(corrpearson_subjects[:, :, idx], auto_fit = True, tri = 'full')
+#   plotting.show()
+
+# %%
+cov_features = phen_abide.loc[:, ['SITE_ID','SEX', 'AGE_AT_SCAN']]
+cov_features.rename(columns = {'SITE_ID':'SITE'}, inplace = True)
+
+# %%
+my_model, correlation_matrices_harmonized = corr_matrix_harmonization(corr=corrpearson_subjects.T,
+                                                                              cov=cov_features,
+                                                                              v=0)
+correlation_matrices_harmonized.shape
+
+# %%
+for idx in range(10):
+  fig, ax = plt.subplots(nrows=1, ncols=2)
+  plotting.plot_matrix(corrpearson_subjects[:, :, idx], auto_fit = True, tri = 'full', axes=ax[0])
+  ax[0].set_title(f"Subject {idx}")
+  plotting.plot_matrix(correlation_matrices_harmonized[idx], auto_fit = True, tri = 'full', axes=ax[1])
+  ax[1].set_title(f"Subject {idx} - Harmonized")
   plotting.show()
 
 # %% [markdown] id="WOF3hzouibDB"
@@ -440,7 +474,7 @@ def shuffle_and_split_data(X, y, seed):
   X = np.asarray(X)
   # Number of samples
   N = X.shape[0]
-  print(N)
+  # print(N)
   ####################################################################
   # Fill in missing code below (...),
   # then remove or comment the line below to test your function
@@ -463,14 +497,15 @@ def shuffle_and_split_data(X, y, seed):
 
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="Yrr3S7p4TemR" outputId="16f47a27-66c3-4dc7-fea3-1a14741d17e5"
-np.asarray(corrpearson_subjects).shape, len(y_target)
+np.asarray(corrpearson_subjects).shape, len(y_target), np.asarray(correlation_matrices_harmonized).shape, len(y_target)
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="xL0ohuwzUu7L" outputId="d5ff8229-0f19-411f-8456-4d5fdd2b4f35"
 y_target
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="mK_5OORJNCTK" outputId="20140327-24c5-40cb-a88c-e7898f69149f"
-# X_train, X_test, y_train, y_test = shuffle_and_split_matrices(corrpearson_subjects, y_target, device)
-X_test, y_test, X_train, y_train = shuffle_and_split_data(corrpearson_subjects, y_target, seed=SEED)
+# X_test, y_test, X_train, y_train = shuffle_and_split_data(corrpearson_subjects, y_target, seed=SEED)
+X_test, y_test, X_train, y_train = shuffle_and_split_data(correlation_matrices_harmonized, y_target, seed=SEED)
+X_test.shape, y_test.shape, X_train.shape, y_train.shape
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="h9g-YYwY2Az2" outputId="1bcef56d-d8ab-444f-d6de-31e7178c1118"
 # Convertir X_train a una matriz de dos dimensiones (8, 200*200)
@@ -704,18 +739,6 @@ _, _, training_losses = train_test_classification(net, criterion, optimizer, tra
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="P-fBtmPovtVT" outputId="fc62e193-c07c-479e-d306-f0bbf6dab111"
 print(X_test.shape)
-
-# %% colab={"base_uri": "https://localhost:8080/"} id="ZQmM0_AbwIc7" outputId="ce44d18b-c64d-46a9-dcbf-900463b65107"
-25600/128
-
-# %% colab={"base_uri": "https://localhost:8080/"} id="U93wu1WZxUIf" outputId="b6fc87fc-5ae9-4011-9a00-b6ee5caeb1d6"
-6000/30
-
-# %% id="8juxzgaSHxM-"
-# inputs, labels = train_loader
-# labels = labels.to(device).long()
-
-# labels.size(0)
 
 # %% colab={"base_uri": "https://localhost:8080/"} id="lrJAfhDVqH0C" outputId="7fd574c7-1827-4067-dbe5-20cd03eb1899"
 train_loader
