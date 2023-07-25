@@ -371,7 +371,7 @@ plotting.plot_prob_atlas(par_clusters) #40.000 (200 * 200) square matrix, If two
 len(abide['rois_cc200'])
 
 # %%
-corrpearson_subjects_path = nma_drive.joinpath("corrpearson_subjects.npy")
+corrpearson_subjects_path = nma_drive.joinpath("corrpearson_whole_subjects.npy")
 
 # %% colab={"base_uri": "https://localhost:8080/", "height": 49, "referenced_widgets": ["c7549003fb814723b292caf171e4bde6", "4708507e26284186b8478ce88957d3de", "7fbc68b716e148fc90a9106296d95385", "14b2eb211c424e2d9b851cad24d39a4c", "af88e2f6ea9b4f7ea8e8588392c065d1", "625db0ab78f44e35958af04a088aec82", "66703da8807c40a2a8aa9c69c4f157d9", "fb1000bf3bfe4a0c85a169e6c4bc7db4", "f65aabea797840a5b165ac9b46b24a70", "253a5db89169408a907d62b6d4c65c17", "b6575ab0de79477cbac2ffc3ddd33fac"]} id="ivtAuZ8wwZUY" outputId="b73368a6-4bba-4073-b664-6ad68c285eb2"
 if not corrpearson_subjects_path.exists():
@@ -409,6 +409,9 @@ my_model, correlation_matrices_harmonized = corr_matrix_harmonization(corr=corrp
                                                                               cov=cov_features,
                                                                               v=0)
 correlation_matrices_harmonized.shape
+
+# %%
+# np.save("correlation_mat_harmo_whole.npy", correlation_matrices_harmonized, allow_pickle=True, fix_imports=True)
 
 # %%
 for idx in range(10):
