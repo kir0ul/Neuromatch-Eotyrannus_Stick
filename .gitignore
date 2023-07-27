@@ -1,8 +1,12 @@
+corrpearson_whole_subjects.npy
+correlation_mat_harmo_whole.npy
+correlation_mat_harmo.npy
 corr_data.csv
 neuromatch_env/
 abideI_pcp.pkl
 abide_pcp_whole.pkl
 ABIDE_pcp/cpac/*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
