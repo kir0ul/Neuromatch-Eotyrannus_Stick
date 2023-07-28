@@ -313,8 +313,8 @@ for idx, val in enumerate(abide['rois_cc200']):
 x_data.shape
 
 # %%
-NYU_dx_counts = phen_abide['DX_GROUP']
-y_target = np.array(NYU_dx_counts)
+dx_counts = phen_abide['DX_GROUP']
+y_target = np.array(dx_counts)
 print(y_target, len(y_target), type(y_target))
 
 
@@ -428,8 +428,8 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(autoencoder1.parameters(), lr=0.0001) # 0.001
 
 # Entrenamiento
-# num_epochs = 200
-num_epochs = 70
+num_epochs = 200
+# num_epochs = 70
 for epoch in range(num_epochs):
     # Forward pass
     outputs = autoencoder1(X)

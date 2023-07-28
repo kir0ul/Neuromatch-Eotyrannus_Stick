@@ -337,8 +337,8 @@ x_data.shape
 # x_data.shape # 160 subjects, 176 time series, 200 ROIs
 
 # %%
-NYU_dx_counts = phen_abide['DX_GROUP']
-y_target = np.array(NYU_dx_counts)
+dx_counts = phen_abide['DX_GROUP']
+y_target = np.array(dx_counts)
 print(y_target, len(y_target), type(y_target))
 
 
