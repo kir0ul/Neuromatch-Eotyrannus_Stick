@@ -259,7 +259,7 @@ def shuffle_and_split_data(X, y, seed):
     
   # Shuffle data
   shuffled_indices = torch.randperm(N)  # Get indices to shuffle data, could use torch.randperm
-  X = X[shuffled_indices]
+  X = X[:, :, shuffled_indices]
   y = y[shuffled_indices]
 
   # Split data into train/test
@@ -274,7 +274,7 @@ def shuffle_and_split_data(X, y, seed):
 
 
 # %%
-X_test, y_test, X_train, y_train = shuffle_and_split_data(x_data_males, dx_data_males, seed=SEED)
+X_test, y_test, X_train, y_train = shuffle_and_split_data(x_data_females, dx_data_females, seed=SEED)
 X_test.shape, y_test.shape, X_train.shape, y_train.shape
 
 
