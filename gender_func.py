@@ -13,6 +13,9 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # Gender study
+
 # %%
 import random
 from pathlib import Path
@@ -25,6 +28,9 @@ import torch.optim as optim
 from tqdm.auto import tqdm
 from sklearn import metrics
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+sns.set(font_scale=1.4) # for label size
 
 
 # %%
@@ -124,6 +130,7 @@ abide_path = Path(nma_drive / "ABIDE_pcp")
 
 # %%
 corr_harmo = np.load(nma_drive / "correlation_mat_harmo_whole.npy")
+corr_harmo.shape
 
 # %%
 # Load the dataset from the drive
@@ -264,14 +271,20 @@ def shuffle_and_split_data(X, y, seed):
 
   # Split data into train/test
   test_size = int(0.2 * N)    # Assign test datset size using 20% of samples
-  X_test = X[:test_size]
+  X_test = X[:, :, :test_size]
   y_test = y[:test_size]
-  X_train = X[test_size:]
+  X_train = X[:, :, test_size:]
   y_train = y[test_size:]
 
   return torch.from_numpy(X_test).float(), torch.from_numpy(y_test).float(), torch.from_numpy(X_train), torch.from_numpy(y_train)
     
 
+
+# %% [markdown]
+# ## Females only
+
+# %%
+x_data_females.shape, dx_data_females.shape
 
 # %%
 X_test, y_test, X_train, y_train = shuffle_and_split_data(x_data_females, dx_data_females, seed=SEED)
@@ -281,16 +294,19 @@ X_test.shape, y_test.shape, X_train.shape, y_train.shape
 # %%
 def X_train_test_reshape(X_train, X_test):
     # Convertir X_train a una matriz de dos dimensiones (8, 200*200)
-    X_train = X_train.reshape(X_train.shape[0], -1)
+    X_train = X_train.reshape(X_train.shape[2], -1)
     print(X_train.shape)
     # Convertir X_test a una matriz de dos dimensiones (2, 200*200)
-    X_test = X_test.reshape(X_test.shape[0], -1)
+    X_test = X_test.reshape(X_test.shape[2], -1)
     print(X_test.shape)
     return X_train, X_test
 
 
 # %%
 X_train, X_test = X_train_test_reshape(X_train, X_test)
+
+# %%
+X_train.shape, y_train.shape
 
 # %%
 g_seed = torch.Generator()
@@ -509,6 +525,102 @@ def train_test_classification(net, criterion, optimizer, train_loader,
 
   return train_acc, test_acc, training_losses
 
+
+# %%
+set_seed(SEED)
+net = Net('ReLU()', X_train.shape[1], [32], 2).to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
+num_epochs = 150
+
+_, _, training_losses = train_test_classification(net, criterion, optimizer, train_loader,
+                                 test_loader, num_epochs=num_epochs,
+                                 training_plot=True, device=device)
+
+# %% [markdown]
+# ## Males only
+
+# %%
+x_data_males.shape, dx_data_males.shape
+
+# %%
+X_test, y_test, X_train, y_train = shuffle_and_split_data(x_data_males, dx_data_males, seed=SEED)
+X_test.shape, y_test.shape, X_train.shape, y_train.shape
+
+# %%
+X_train, X_test = X_train_test_reshape(X_train, X_test)
+
+# %%
+g_seed = torch.Generator()
+g_seed.manual_seed(SEED)
+
+batch_size = 32
+test_data = TensorDataset(X_test, y_test)
+test_loader = DataLoader(test_data, batch_size=batch_size,
+                         shuffle=False, num_workers=0,
+                         worker_init_fn=seed_worker,
+                         generator=g_seed)
+
+
+train_data = TensorDataset(X_train, y_train)
+train_loader = DataLoader(train_data, batch_size=batch_size, drop_last=True,
+                          shuffle=True, num_workers=0,
+                          worker_init_fn=seed_worker,
+                          generator=g_seed)
+
+# %%
+set_seed(SEED)
+net = Net('ReLU()', X_train.shape[1], [32], 2).to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(), lr=1e-3)
+num_epochs = 150
+
+_, _, training_losses = train_test_classification(net, criterion, optimizer, train_loader,
+                                 test_loader, num_epochs=num_epochs,
+                                 training_plot=True, device=device)
+
+# %% [markdown]
+# ## Train on males+females - test on females
+
+# %%
+corr_harmo.shape
+
+# %%
+x_data_swaped = np.swapaxes(corr_harmo, 0, -1)
+
+# %%
+x_data_swaped.shape, y_target.shape
+
+# %%
+x_data_females.shape, dx_data_females.shape
+
+# %%
+X_test = torch.from_numpy(x_data_females).float()
+y_test = torch.from_numpy(dx_data_females).float()
+X_train = torch.from_numpy(x_data_swaped).float()
+y_train = torch.from_numpy(y_target).float()
+X_test.shape, y_test.shape, X_train.shape, y_train.shape
+
+# %%
+X_train, X_test = X_train_test_reshape(X_train, X_test)
+
+# %%
+g_seed = torch.Generator()
+g_seed.manual_seed(SEED)
+
+batch_size = 32
+test_data = TensorDataset(X_test, y_test)
+test_loader = DataLoader(test_data, batch_size=batch_size,
+                         shuffle=False, num_workers=0,
+                         worker_init_fn=seed_worker,
+                         generator=g_seed)
+
+
+train_data = TensorDataset(X_train, y_train)
+train_loader = DataLoader(train_data, batch_size=batch_size, drop_last=True,
+                          shuffle=True, num_workers=0,
+                          worker_init_fn=seed_worker,
+                          generator=g_seed)
 
 # %%
 set_seed(SEED)
